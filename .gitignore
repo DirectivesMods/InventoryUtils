@@ -2,9 +2,10 @@
 .gradle/
 build/
 out/
-gradle/
-gradlew
-gradlew.bat
+# Note: Keep gradle wrapper files for others to build the project
+# gradle/
+# gradlew
+# gradlew.bat
 
 # Eclipse
 .settings/
