@@ -1,0 +1,70 @@
+# Gradle
+.gradle/
+build/
+out/
+gradle/
+gradlew
+gradlew.bat
+
+# Eclipse
+.settings/
+bin/
+eclipse/
+.classpath
+.project
+.metadata/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# VS Code
+.vscode/
+
+# Minecraft / Forge
+run/
+logs/
+crash-reports/
+config/
+saves/
+screenshots/
+resourcepacks/
+shaderpacks/
+mods/
+.mixin.out/
+
+# MacOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Java
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+*.war
+*.ear
+*.log
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Temporary files
+tmp/
+temp/

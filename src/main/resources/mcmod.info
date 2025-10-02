@@ -1,0 +1,16 @@
+[
+{
+  "modid": "guiclicker",
+  "name": "GUI Clicker",
+  "description": "Move items in inventory GUIs by holding mouse buttons and dragging over slots",
+  "version": "${mod_version}",
+  "mcversion": "${minecraft_version}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["masa"],
+  "credits": "ChickenBones (original idea, in NEI)",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
