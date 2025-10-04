@@ -481,8 +481,10 @@ public class InputEventHandler
 
     private boolean handleDropKeybind(GuiContainer gui)
     {
-        boolean isShiftDown = GuiContainer.isShiftKeyDown();
-        boolean isControlDown = GuiContainer.isCtrlKeyDown();
+        // Use direct keyboard state checking for better Mac compatibility
+        boolean isShiftDown = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
+        boolean isControlDown = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL) || 
+                               Keyboard.isKeyDown(Keyboard.KEY_LMETA) || Keyboard.isKeyDown(Keyboard.KEY_RMETA); // Mac Cmd keys
         
         // Get mouse position to determine hovered slot
         int mouseX = (Mouse.getX() * gui.width / gui.mc.displayWidth) - gui.guiLeft;

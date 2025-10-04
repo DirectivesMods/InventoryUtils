@@ -55,11 +55,11 @@ public class Configs
         enableDragMovingControlLeft = prop.getBoolean();
 
         prop = conf.get(CATEGORY_GENERIC, "enableDropStack", true).setRequiresMcRestart(false);
-        prop.comment = "Enable dropping entire stack with Ctrl+Q.";
+        prop.comment = "Enable dropping entire stack with Ctrl+Q (Cmd+Q on Mac).";
         enableDropStack = prop.getBoolean();
 
         prop = conf.get(CATEGORY_GENERIC, "enableDropAllOfType", true).setRequiresMcRestart(false);
-        prop.comment = "Enable dropping all items of same type with Ctrl+Shift+Q.";
+        prop.comment = "Enable dropping all items of same type with Ctrl+Shift+Q (Cmd+Shift+Q on Mac).";
         enableDropAllOfType = prop.getBoolean();
 
         if (conf.hasChanged() == true)
