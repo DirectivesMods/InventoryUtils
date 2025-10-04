@@ -3,6 +3,7 @@ package guiclicker.event;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -11,6 +12,9 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.client.C10PacketCreativeInventoryAction;
+import net.minecraft.util.ChatComponentText;
+import net.minecraftforge.client.event.GuiScreenEvent.KeyboardInputEvent;
 import net.minecraftforge.client.event.GuiScreenEvent.MouseInputEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
@@ -49,6 +53,26 @@ public class InputEventHandler
             // Clear state when not in a container GUI to prevent stuck states
             this.draggedSlots.clear();
             this.slotNumberLast = -1;
+        }
+    }
+
+    @SubscribeEvent
+    public void onKeyboardInputEvent(KeyboardInputEvent.Pre event)
+    {
+        if (event.gui instanceof GuiContainer)
+        {
+            boolean cancel = false;
+            
+            // Check for Q key press with modifiers
+            if (Keyboard.getEventKeyState() && Keyboard.getEventKey() == Keyboard.KEY_Q)
+            {
+                cancel = this.handleDropKeybind((GuiContainer)event.gui);
+            }
+
+            if (cancel && event.isCancelable())
+            {
+                event.setCanceled(true);
+            }
         }
     }
 
@@ -453,5 +477,101 @@ public class InputEventHandler
         }
 
         return ret;
+    }
+
+    private boolean handleDropKeybind(GuiContainer gui)
+    {
+        boolean isShiftDown = GuiContainer.isShiftKeyDown();
+        boolean isControlDown = GuiContainer.isCtrlKeyDown();
+        
+        // Get mouse position to determine hovered slot
+        int mouseX = (Mouse.getX() * gui.width / gui.mc.displayWidth) - gui.guiLeft;
+        int mouseY = (gui.height - Mouse.getY() * gui.height / gui.mc.displayHeight - 1) - gui.guiTop;
+        Slot hoveredSlot = this.getSlotAtPosition(gui, mouseX, mouseY);
+        
+        if (hoveredSlot == null || !hoveredSlot.getHasStack())
+        {
+            return false;
+        }
+        
+        // CTRL + SHIFT + Q = drop all items of same type
+        if (isControlDown && isShiftDown && Configs.enableDropAllOfType)
+        {
+            return this.dropAllItemsOfType(gui, hoveredSlot);
+        }
+        // CTRL + Q = drop entire stack
+        else if (isControlDown && !isShiftDown && Configs.enableDropStack)
+        {
+            return this.dropStack(gui, hoveredSlot);
+        }
+        
+        return false;
+    }
+
+    private boolean dropStack(GuiContainer gui, Slot slot)
+    {
+        if (slot == null || !slot.getHasStack())
+        {
+            return false;
+        }
+        
+        EntityPlayer player = gui.mc.thePlayer;
+        Container container = gui.inventorySlots;
+        
+        // Left click to pick up the stack
+        gui.mc.playerController.windowClick(container.windowId, slot.slotNumber, 0, 0, player);
+        
+        // Drop the stack (Q key simulation)
+        if (player.inventory.getItemStack() != null)
+        {
+            gui.mc.playerController.windowClick(container.windowId, -999, 0, 0, player);
+            return true;
+        }
+        
+        return false;
+    }
+
+    private boolean dropAllItemsOfType(GuiContainer gui, Slot referenceSlot)
+    {
+        if (referenceSlot == null || !referenceSlot.getHasStack())
+        {
+            return false;
+        }
+        
+        ItemStack referenceStack = referenceSlot.getStack();
+        EntityPlayer player = gui.mc.thePlayer;
+        Container container = gui.inventorySlots;
+        boolean droppedAny = false;
+        
+        // Go through all slots and drop matching items
+        for (Slot slot : (List<Slot>) container.inventorySlots)
+        {
+            if (slot.getHasStack() && this.areItemStacksEqual(slot.getStack(), referenceStack))
+            {
+                // Left click to pick up the stack
+                gui.mc.playerController.windowClick(container.windowId, slot.slotNumber, 0, 0, player);
+                
+                // Drop the stack
+                if (player.inventory.getItemStack() != null)
+                {
+                    gui.mc.playerController.windowClick(container.windowId, -999, 0, 0, player);
+                    droppedAny = true;
+                }
+            }
+        }
+        
+        return droppedAny;
+    }
+
+    private boolean areItemStacksEqual(ItemStack stack1, ItemStack stack2)
+    {
+        if (stack1 == null || stack2 == null)
+        {
+            return false;
+        }
+        
+        return stack1.getItem() == stack2.getItem() && 
+               stack1.getItemDamage() == stack2.getItemDamage() &&
+               ItemStack.areItemStackTagsEqual(stack1, stack2);
     }
 }

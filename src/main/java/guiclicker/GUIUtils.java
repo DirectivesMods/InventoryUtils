@@ -12,13 +12,13 @@ import guiclicker.config.Configs;
 import guiclicker.proxy.CommonProxy;
 
 @Mod(modid = Reference.MOD_ID, name = Reference.MOD_NAME, version = Reference.MOD_VERSION,
-    guiFactory = "guiclicker.config.ItemScrollerGuiFactory",
+    guiFactory = "guiclicker.config.GUIUtilsGuiFactory",
     dependencies = "required-after:Forge@[11.15.0.1716,);",
     clientSideOnly=true, acceptedMinecraftVersions = "1.8.9")
-public class ItemScroller
+public class GUIUtils
 {
     @Instance(Reference.MOD_ID)
-    public static ItemScroller instance;
+    public static GUIUtils instance;
 
     @SidedProxy(clientSide = "guiclicker.proxy.ClientProxy", serverSide = "guiclicker.proxy.CommonProxy")
     public static CommonProxy proxy;

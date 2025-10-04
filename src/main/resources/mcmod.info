@@ -1,14 +1,14 @@
 [
 {
-  "modid": "guiclicker",
-  "name": "GUI Clicker",
-  "description": "Move items in inventory GUIs by holding mouse buttons and dragging over slots",
+  "modid": "guiutils",
+  "name": "GUIUtils",
+  "description": "Utility mod for inventory GUIs: move items by dragging, drop stacks with Ctrl+Q, drop all items of same type with Ctrl+Shift+Q",
   "version": "${mod_version}",
   "mcversion": "${minecraft_version}",
-  "url": "",
+  "url": "https://github.com/DirectivesMods/guiclicker",
   "updateUrl": "",
-  "authorList": ["masa"],
-  "credits": "ChickenBones (original idea, in NEI)",
+  "authorList": ["masa", "DirectivesMods"],
+  "credits": "ChickenBones (original idea, in NEI), masa (original ItemScroller)",
   "logoFile": "",
   "screenshots": [],
   "dependencies": []
