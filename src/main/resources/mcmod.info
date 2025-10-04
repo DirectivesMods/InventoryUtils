@@ -1,8 +1,8 @@
 [
 {
-  "modid": "guiutils",
-  "name": "GUIUtils",
-  "description": "Utility mod for inventory GUIs: move items by dragging, drop stacks with Ctrl+Q, drop all items of same type with Ctrl+Shift+Q",
+  "modid": "inventoryutils",
+  "name": "InventoryUtils", 
+  "description": "Inventory management utilities: move items by dragging, drop stacks with Ctrl+Q, drop all items of same type with Ctrl+Shift+Q",
   "version": "${mod_version}",
   "mcversion": "${minecraft_version}",
   "url": "https://github.com/DirectivesMods/guiclicker",
