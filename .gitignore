@@ -69,3 +69,6 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
+
+# Local helper scripts
+build_with_jdk8.sh
