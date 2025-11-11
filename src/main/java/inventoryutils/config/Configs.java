@@ -14,6 +14,8 @@ public class Configs
     public static boolean enableDragMovingControlLeft;
     public static boolean enableDropStack;
     public static boolean enableDropAllOfType;
+    public static boolean enableHotbarDropStack;
+    public static boolean enableHotbarDropAllOfType;
 
     public static File configurationFile;
     public static Configuration config;
@@ -55,12 +57,20 @@ public class Configs
         enableDragMovingControlLeft = prop.getBoolean();
 
         prop = conf.get(CATEGORY_GENERIC, "enableDropStack", true).setRequiresMcRestart(false);
-        prop.comment = "Enable dropping entire stack with Ctrl+Q (Cmd+Q on Mac).";
+        prop.comment = "Enable dropping entire stack with Ctrl+Q.";
         enableDropStack = prop.getBoolean();
 
         prop = conf.get(CATEGORY_GENERIC, "enableDropAllOfType", true).setRequiresMcRestart(false);
-        prop.comment = "Enable dropping all items of same type with Ctrl+Shift+Q (Cmd+Shift+Q on Mac).";
+        prop.comment = "Enable dropping all items of same type with Ctrl+Shift+Q.";
         enableDropAllOfType = prop.getBoolean();
+
+        prop = conf.get(CATEGORY_GENERIC, "enableHotbarDropStack", true).setRequiresMcRestart(false);
+        prop.comment = "Enable dropping the entire stack of the selected hotbar slot with Ctrl+Q.";
+        enableHotbarDropStack = prop.getBoolean();
+
+        prop = conf.get(CATEGORY_GENERIC, "enableHotbarDropAllOfType", true).setRequiresMcRestart(false);
+        prop.comment = "Enable dropping all matching items of the selected hotbar slot with Ctrl+Shift+Q.";
+        enableHotbarDropAllOfType = prop.getBoolean();
 
         if (conf.hasChanged() == true)
         {

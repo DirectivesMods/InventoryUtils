@@ -17,6 +17,7 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.client.event.GuiScreenEvent.KeyboardInputEvent;
 import net.minecraftforge.client.event.GuiScreenEvent.MouseInputEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.InputEvent.KeyInputEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.SlotItemHandler;
@@ -74,6 +75,37 @@ public class InputEventHandler
                 event.setCanceled(true);
             }
         }
+    }
+
+    @SubscribeEvent
+    public void onKeyInput(KeyInputEvent event)
+    {
+        Minecraft mc = Minecraft.getMinecraft();
+
+        if (mc == null || mc.thePlayer == null || mc.theWorld == null || mc.currentScreen != null)
+        {
+            return;
+        }
+
+        if (Keyboard.getEventKeyState() == false)
+        {
+            return;
+        }
+
+        int eventKey = Keyboard.getEventKey();
+
+        if (eventKey == 0)
+        {
+            return;
+        }
+        int dropKey = mc.gameSettings.keyBindDrop.getKeyCode();
+
+        if (eventKey != dropKey)
+        {
+            return;
+        }
+
+        this.handleHotbarDropKeybind(mc);
     }
 
     private boolean isValidSlot(Slot slot, GuiContainer gui, boolean requireItems)
@@ -479,6 +511,44 @@ public class InputEventHandler
         return ret;
     }
 
+    private void handleHotbarDropKeybind(Minecraft mc)
+    {
+        if (mc.inGameHasFocus == false || (Configs.enableHotbarDropStack == false && Configs.enableHotbarDropAllOfType == false))
+        {
+            return;
+        }
+
+        EntityPlayer player = mc.thePlayer;
+        boolean isShiftDown = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
+        boolean isControlDown = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL) ||
+                                Keyboard.isKeyDown(Keyboard.KEY_LMETA) || Keyboard.isKeyDown(Keyboard.KEY_RMETA);
+
+        if (isControlDown == false || player.inventory.currentItem < 0 || player.inventory.currentItem >= 9)
+        {
+            return;
+        }
+
+        int slotNumber = this.getContainerSlotFromInventoryIndex(player.inventory.currentItem);
+        Container container = player.inventoryContainer;
+        Slot hoveredSlot = this.getSlotFromContainer(container, slotNumber);
+
+        if (hoveredSlot == null || hoveredSlot.getHasStack() == false || hoveredSlot.getStack() == null)
+        {
+            return;
+        }
+
+        ItemStack referenceStack = hoveredSlot.getStack().copy();
+
+        if (isShiftDown == true && Configs.enableHotbarDropAllOfType == true)
+        {
+            this.dropAllMatchingStacksFromInventory(mc, referenceStack);
+        }
+        else if (isShiftDown == false && Configs.enableHotbarDropStack == true)
+        {
+            this.dropStackFromSlot(container, mc, slotNumber);
+        }
+    }
+
     private boolean handleDropKeybind(GuiContainer gui)
     {
         // Use direct keyboard state checking for better Mac compatibility
@@ -512,25 +582,12 @@ public class InputEventHandler
 
     private boolean dropStack(GuiContainer gui, Slot slot)
     {
-        if (slot == null || !slot.getHasStack())
+        if (gui == null || slot == null)
         {
             return false;
         }
-        
-        EntityPlayer player = gui.mc.thePlayer;
-        Container container = gui.inventorySlots;
-        
-        // Left click to pick up the stack
-        gui.mc.playerController.windowClick(container.windowId, slot.slotNumber, 0, 0, player);
-        
-        // Drop the stack (Q key simulation)
-        if (player.inventory.getItemStack() != null)
-        {
-            gui.mc.playerController.windowClick(container.windowId, -999, 0, 0, player);
-            return true;
-        }
-        
-        return false;
+
+        return this.dropStackFromSlot(gui.inventorySlots, gui.mc, slot.slotNumber);
     }
 
     private boolean dropAllItemsOfType(GuiContainer gui, Slot referenceSlot)
@@ -541,7 +598,6 @@ public class InputEventHandler
         }
         
         ItemStack referenceStack = referenceSlot.getStack();
-        EntityPlayer player = gui.mc.thePlayer;
         Container container = gui.inventorySlots;
         boolean droppedAny = false;
         
@@ -550,13 +606,8 @@ public class InputEventHandler
         {
             if (slot.getHasStack() && this.areItemStacksEqual(slot.getStack(), referenceStack))
             {
-                // Left click to pick up the stack
-                gui.mc.playerController.windowClick(container.windowId, slot.slotNumber, 0, 0, player);
-                
-                // Drop the stack
-                if (player.inventory.getItemStack() != null)
+                if (this.dropStackFromSlot(container, gui.mc, slot.slotNumber) == true)
                 {
-                    gui.mc.playerController.windowClick(container.windowId, -999, 0, 0, player);
                     droppedAny = true;
                 }
             }
@@ -575,5 +626,76 @@ public class InputEventHandler
         return stack1.getItem() == stack2.getItem() && 
                stack1.getItemDamage() == stack2.getItemDamage() &&
                ItemStack.areItemStackTagsEqual(stack1, stack2);
+    }
+
+    private Slot getSlotFromContainer(Container container, int slotNumber)
+    {
+        if (container == null || slotNumber < 0 || slotNumber >= container.inventorySlots.size())
+        {
+            return null;
+        }
+
+        return container.inventorySlots.get(slotNumber);
+    }
+
+    private boolean dropStackFromSlot(Container container, Minecraft mc, int slotNumber)
+    {
+        Slot slot = this.getSlotFromContainer(container, slotNumber);
+
+        if (slot == null || slot.getHasStack() == false)
+        {
+            return false;
+        }
+
+        EntityPlayer player = mc.thePlayer;
+
+        mc.playerController.windowClick(container.windowId, slotNumber, 0, 0, player);
+
+        if (player.inventory.getItemStack() != null)
+        {
+            mc.playerController.windowClick(container.windowId, -999, 0, 0, player);
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean dropAllMatchingStacksFromInventory(Minecraft mc, ItemStack referenceStack)
+    {
+        if (referenceStack == null)
+        {
+            return false;
+        }
+
+        EntityPlayer player = mc.thePlayer;
+        Container container = player.inventoryContainer;
+        boolean droppedAny = false;
+
+        for (int inventoryIndex = 0; inventoryIndex < player.inventory.mainInventory.length; inventoryIndex++)
+        {
+            ItemStack stack = player.inventory.mainInventory[inventoryIndex];
+
+            if (stack != null && this.areItemStacksEqual(stack, referenceStack) == true)
+            {
+                int slotNumber = this.getContainerSlotFromInventoryIndex(inventoryIndex);
+
+                if (slotNumber >= 0 && this.dropStackFromSlot(container, mc, slotNumber) == true)
+                {
+                    droppedAny = true;
+                }
+            }
+        }
+
+        return droppedAny;
+    }
+
+    private int getContainerSlotFromInventoryIndex(int inventoryIndex)
+    {
+        if (inventoryIndex < 0 || inventoryIndex >= 36)
+        {
+            return -1;
+        }
+
+        return inventoryIndex < 9 ? 36 + inventoryIndex : inventoryIndex;
     }
 }
